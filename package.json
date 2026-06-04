@@ -14,7 +14,9 @@
     "icons": "link:@b1nd/dodam-design-system/icons",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-router-dom": "^7.16.0",
     "shapes": "link:@b1nd/dodam-design-system/shapes",
+    "styled-components": "^6.4.2",
     "themes": "link:@b1nd/dodam-design-system/themes",
     "typography": "link:@b1nd/dodam-design-system/typography"
   },
