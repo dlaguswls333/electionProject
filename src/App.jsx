@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import CandidateRegistrationScreen from './components/CandidateRegistrationScreen'
+import DauthCallbackScreen from './components/DauthCallbackScreen'
 import LoginScreen from './components/LoginScreen'
 import StatsScreen from './components/StatsScreen'
 import TopBar from './components/TopBar'
@@ -196,10 +197,14 @@ function App() {
           <Route
             element={
               <PublicOnlyRoute user={user}>
-                <LoginScreen onLogin={handleLogin} />
+                <LoginScreen />
               </PublicOnlyRoute>
             }
             path={ROUTES.login}
+          />
+          <Route
+            element={<DauthCallbackScreen onLogin={handleLogin} />}
+            path={ROUTES.dauthCallback}
           />
           <Route
             element={

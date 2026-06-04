@@ -1,44 +1,31 @@
 import { useState } from 'react'
 import styled from 'styled-components'
-import { Field, GhostLink, PrimaryButton, SectionHeading } from '../styles/primitives'
+import { getDauthConfig, startDauthLogin } from '../auth/dauth'
+import { PrimaryButton, SectionHeading } from '../styles/primitives'
 import FeatureItem from './FeatureItem'
 
-function LoginScreen({ onLogin }) {
-  const [role, setRole] = useState('admin')
-  const [account, setAccount] = useState('admin@daeso.hs.kr')
-  const [password, setPassword] = useState('12345678')
-  const [remember, setRemember] = useState(false)
+function LoginScreen() {
+  const [isStarting, setIsStarting] = useState(false)
   const [message, setMessage] = useState(
-    '학생 투표는 학생 계정 선택 후 학번/PIN으로 접속합니다.',
+    'DAuth 계정 인증 후 선거 시스템 권한으로 접속합니다.',
   )
+  const dauthConfig = getDauthConfig()
+  const isDauthConfigured = Boolean(dauthConfig.clientId)
 
-  function handleRoleChange(nextRole) {
-    setRole(nextRole)
-    setAccount(nextRole === 'admin' ? 'admin@daeso.hs.kr' : '20314')
-    setPassword(nextRole === 'admin' ? '12345678' : '1234')
-    setMessage(
-      nextRole === 'admin'
-        ? '관리자는 후보 등록과 집계 화면에 접근할 수 있습니다.'
-        : '학생 투표는 학생 계정 선택 후 학번/PIN으로 접속합니다.',
-    )
-  }
+  async function handleDauthLogin() {
+    setIsStarting(true)
+    setMessage('DAuth 인가 페이지로 이동합니다.')
 
-  function handleSubmit(event) {
-    event.preventDefault()
-
-    if (!account.trim() || !password.trim()) {
-      setMessage('아이디와 비밀번호를 모두 입력해 주세요.')
-      return
+    try {
+      await startDauthLogin()
+    } catch (error) {
+      setIsStarting(false)
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'DAuth 로그인을 시작하지 못했습니다.',
+      )
     }
-
-    onLogin({
-      role,
-      account: account.trim(),
-      name: role === 'admin' ? '선거관리자' : '홍길동',
-      className: '2학년 3반',
-      number: '14',
-      remember,
-    })
   }
 
   return (
@@ -71,72 +58,40 @@ function LoginScreen({ onLogin }) {
         </HeroFooter>
       </HeroPanel>
 
-      <LoginCard onSubmit={handleSubmit}>
+      <LoginCard>
         <SectionHeading $compact>
           <h2>로그인</h2>
-          <p>계정 정보를 입력해 시스템에 접속합니다.</p>
+          <p>도담 계정으로 선거 시스템에 접속합니다.</p>
         </SectionHeading>
 
-        <RoleTabs role="tablist" aria-label="로그인 역할">
-          <button
-            aria-selected={role === 'admin'}
-            onClick={() => handleRoleChange('admin')}
-            role="tab"
-            type="button"
-          >
-            관리자
-          </button>
-          <button
-            aria-selected={role === 'student'}
-            onClick={() => handleRoleChange('student')}
-            role="tab"
-            type="button"
-          >
-            학생
-          </button>
-        </RoleTabs>
+        <DauthIdentity>
+          <DauthLogo>D</DauthLogo>
+          <div>
+            <strong>DAuth</strong>
+            <span>도담도담 OAuth 인증</span>
+          </div>
+        </DauthIdentity>
 
-        <Field>
-          <span>{role === 'admin' ? '아이디' : '학번'}</span>
-          <input
-            autoComplete="username"
-            onChange={(event) => setAccount(event.target.value)}
-            value={account}
-          />
-        </Field>
+        <AuthInfoList>
+          <li>학생은 DAuth 학생 정보로 투표 화면에 연결됩니다.</li>
+          <li>교사 또는 관리자 권한은 후보 등록과 집계 화면으로 연결됩니다.</li>
+          <li>회원가입과 계정 관리는 도담 계정에서 진행합니다.</li>
+        </AuthInfoList>
 
-        <Field>
-          <span>{role === 'admin' ? '비밀번호' : 'PIN'}</span>
-          <input
-            autoComplete="current-password"
-            onChange={(event) => setPassword(event.target.value)}
-            type="password"
-            value={password}
-          />
-        </Field>
-
-        <LoginOptions>
-          <CheckboxRow>
-            <input
-              checked={remember}
-              onChange={(event) => setRemember(event.target.checked)}
-              type="checkbox"
-            />
-            <span>로그인 상태 유지</span>
-          </CheckboxRow>
-          <GhostLink
-            onClick={() => setMessage('비밀번호 재설정은 선거관리자에게 문의하세요.')}
-            type="button"
-          >
-            비밀번호 찾기
-          </GhostLink>
-        </LoginOptions>
-
-        <PrimaryButton $full type="submit">
-          로그인
+        <PrimaryButton
+          $full
+          disabled={!isDauthConfigured || isStarting}
+          onClick={handleDauthLogin}
+          type="button"
+        >
+          {isStarting ? '이동 중' : 'DAuth로 로그인'}
         </PrimaryButton>
 
-        <NoticeBox>{message}</NoticeBox>
+        <NoticeBox $warning={!isDauthConfigured}>
+          {isDauthConfigured
+            ? message
+            : 'VITE_DAUTH_CLIENT_ID 환경 변수를 설정해야 DAuth 로그인을 시작할 수 있습니다.'}
+        </NoticeBox>
       </LoginCard>
     </Layout>
   )
@@ -145,10 +100,10 @@ function LoginScreen({ onLogin }) {
 const Layout = styled.section`
   display: grid;
   grid-template-columns: 580px 520px;
-  gap: 120px;
+  gap: clamp(56px, 8vw, 120px);
   align-items: center;
-  min-height: 878px;
-  padding: 50px 80px 80px;
+  min-height: calc(100dvh - 82px);
+  padding: clamp(18px, 5vh, 50px) 80px clamp(18px, 4vh, 40px);
 
   @media (max-width: 1180px) {
     grid-template-columns: 1fr;
@@ -162,8 +117,11 @@ const Layout = styled.section`
 `
 
 const HeroPanel = styled.article`
-  min-height: 748px;
-  padding: 58px 48px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: clamp(520px, calc(100dvh - 166px), 748px);
+  padding: clamp(32px, 5vh, 58px) 48px;
   color: #ffffff;
   background: #0f766e;
   border-radius: 8px;
@@ -180,7 +138,7 @@ const HeroPanel = styled.article`
 
   > p {
     max-width: 410px;
-    margin: 52px 0 0;
+    margin: clamp(24px, 5vh, 52px) 0 0;
     color: #ccfbf1;
     font-size: 16px;
     font-weight: 600;
@@ -193,6 +151,7 @@ const HeroPanel = styled.article`
   }
 
   @media (max-width: 760px) {
+    height: auto;
     min-height: auto;
     padding: 36px 24px;
   }
@@ -200,10 +159,10 @@ const HeroPanel = styled.article`
 
 const FeatureStrip = styled.div`
   display: grid;
-  gap: 28px;
+  gap: clamp(18px, 2.8vh, 28px);
   width: 458px;
-  margin-top: 66px;
-  padding: 40px 24px;
+  margin-top: clamp(28px, 6vh, 66px);
+  padding: clamp(24px, 4vh, 40px) 24px;
   background: #0b625c;
   border-radius: 8px;
 
@@ -214,7 +173,8 @@ const FeatureStrip = styled.div`
 `
 
 const HeroFooter = styled.div`
-  margin-top: 92px;
+  margin-top: auto;
+  padding-top: 24px;
 
   strong {
     display: block;
@@ -235,10 +195,10 @@ const HeroFooter = styled.div`
   }
 `
 
-const LoginCard = styled.form`
+const LoginCard = styled.article`
   display: grid;
-  gap: 24px;
-  padding: 40px;
+  gap: clamp(16px, 2.4vh, 26px);
+  padding: clamp(28px, 4.2vh, 40px);
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -255,68 +215,86 @@ const LoginCard = styled.form`
   }
 `
 
-const RoleTabs = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  height: 46px;
-  padding: 6px;
-  background: #e2e8f0;
+const DauthIdentity = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
 
-  button {
+  strong,
+  span {
+    display: block;
+  }
+
+  strong {
+    color: #0f172a;
+    font-size: 18px;
+    line-height: 25px;
+  }
+
+  span {
+    margin-top: 2px;
     color: #64748b;
     font-size: 13px;
-    font-weight: 700;
-    background: transparent;
-    border-radius: 7px;
-    cursor: pointer;
-  }
-
-  button[aria-selected='true'] {
-    color: #0f766e;
-    background: #ffffff;
+    font-weight: 600;
+    line-height: 18px;
   }
 `
 
-const LoginOptions = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  @media (max-width: 760px) {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 12px;
-  }
+const DauthLogo = styled.span`
+  display: grid;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 900;
+  background: #0f766e;
+  border-radius: 8px;
 `
 
-const CheckboxRow = styled.label`
-  display: flex;
-  align-items: center;
+const AuthInfoList = styled.ul`
+  display: grid;
   gap: 10px;
+  margin: 0;
+  padding: 0;
   color: #475569;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 19px;
+  list-style: none;
 
-  input {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    accent-color: #0f766e;
+  li {
+    position: relative;
+    padding-left: 16px;
+  }
+
+  li::before {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    width: 5px;
+    height: 5px;
+    background: #0f766e;
+    border-radius: 50%;
+    content: '';
   }
 `
 
 const NoticeBox = styled.p`
   min-height: 44px;
-  margin: -10px 0 0;
+  margin: -8px 0 0;
   padding: 13px 18px;
-  color: #64748b;
+  color: ${({ $warning }) => ($warning ? '#92400e' : '#64748b')};
   font-size: 12px;
   font-weight: 600;
   line-height: 17px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: ${({ $warning }) => ($warning ? '#fffbeb' : '#f8fafc')};
+  border: 1px solid ${({ $warning }) => ($warning ? '#fde68a' : '#e2e8f0')};
   border-radius: 8px;
 `
 

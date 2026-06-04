@@ -17,6 +17,11 @@ function VoteScreen({
   selectedCandidateId,
   user,
 }) {
+  const voterName =
+    user.role === 'student'
+      ? `${user.className} ${user.number ? `${user.number}번 ` : ''}${user.name}`
+      : `${user.name} 관리자`
+
   return (
     <PageContent>
       <SectionHeading>
@@ -32,9 +37,7 @@ function VoteScreen({
           {hasVoted ? '투표 완료' : '투표 가능'}
         </Pill>
         <div>
-          <strong>
-            {user.className} {user.number}번 {user.name}
-          </strong>
+          <strong>{voterName}</strong>
           <p>
             {hasVoted
               ? '이미 제출된 투표는 변경할 수 없습니다.'
@@ -79,10 +82,10 @@ function VoteScreen({
 const VoterStatus = styled(LightPanel)`
   display: flex;
   align-items: center;
-  gap: 36px;
-  min-height: 90px;
-  margin-top: 48px;
-  padding: 20px 32px;
+  gap: clamp(24px, 3vw, 36px);
+  min-height: clamp(62px, 8vh, 90px);
+  margin-top: clamp(12px, 2.6vh, 48px);
+  padding: clamp(14px, 2vh, 20px) 32px;
 
   strong {
     font-size: 16px;
@@ -104,9 +107,9 @@ const VoterStatus = styled(LightPanel)`
 
 const VoteCardGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-  margin-top: 56px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(24px, 3vw, 40px);
+  margin-top: clamp(16px, 3vh, 56px);
 
   @media (max-width: 1180px) {
     grid-template-columns: repeat(2, 1fr);
@@ -123,9 +126,9 @@ const SubmitBar = styled(LightPanel).attrs({ as: 'footer' })`
   grid-template-columns: 260px 1fr auto;
   gap: 26px;
   align-items: center;
-  min-height: 76px;
-  margin-top: 52px;
-  padding: 16px 32px;
+  min-height: clamp(56px, 7vh, 76px);
+  margin-top: clamp(14px, 2.8vh, 52px);
+  padding: clamp(10px, 1.8vh, 16px) 32px;
 
   strong {
     font-size: 16px;

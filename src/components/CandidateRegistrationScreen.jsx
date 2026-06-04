@@ -230,22 +230,34 @@ function CandidateRegistrationScreen({
 const Layout = styled.div`
   display: grid;
   grid-template-columns: minmax(0, 690px) minmax(420px, 550px);
-  gap: 40px;
+  gap: clamp(24px, 3.2vw, 40px);
+  align-items: start;
 
   @media (max-width: 1180px) {
     grid-template-columns: 1fr;
   }
 `
 
-const CandidateForm = styled(Panel).attrs({ as: 'form' })``
+const CandidateForm = styled(Panel).attrs({ as: 'form' })`
+  min-height: 0;
+`
 
-const CandidateList = styled(Panel).attrs({ as: 'aside' })``
+const CandidateList = styled(Panel).attrs({ as: 'aside' })`
+  min-height: 0;
+  max-height: calc(100dvh - 190px);
+  overflow: hidden;
+
+  @media (max-width: 1180px) {
+    max-height: none;
+    overflow: visible;
+  }
+`
 
 const FormGrid = styled.div`
   display: grid;
   grid-template-columns: 120px 1fr 176px;
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: clamp(16px, 2vw, 24px);
+  margin-bottom: clamp(14px, 2vh, 24px);
 
   @media (max-width: 760px) {
     grid-template-columns: 1fr;
@@ -253,7 +265,7 @@ const FormGrid = styled.div`
 `
 
 const FieldBlock = styled(Field)`
-  margin-bottom: 24px;
+  margin-bottom: clamp(14px, 2vh, 24px);
 `
 
 const FormBottom = styled.div`
@@ -270,7 +282,7 @@ const FormBottom = styled.div`
 
 const PhotoUpload = styled.label`
   display: grid;
-  gap: 8px;
+  gap: 6px;
   color: #475569;
   font-size: 13px;
   font-weight: 700;
@@ -286,7 +298,7 @@ const PhotoUpload = styled.label`
   strong {
     display: grid;
     width: 208px;
-    height: 116px;
+    height: clamp(84px, 12vh, 116px);
     place-items: center;
     overflow: hidden;
     background: #f8fafc;
@@ -324,11 +336,11 @@ const UploadGlyph = styled.span`
 const FormActions = styled.div`
   display: flex;
   gap: 18px;
-  padding-bottom: 18px;
+  padding-bottom: clamp(8px, 1.8vh, 18px);
 `
 
 const FormMessage = styled.p`
-  margin: 16px 0 0;
+  margin: 10px 0 0;
   color: #0f766e;
   font-size: 13px;
   font-weight: 700;
@@ -336,7 +348,15 @@ const FormMessage = styled.p`
 
 const CandidateStack = styled.div`
   display: grid;
-  gap: 30px;
+  gap: clamp(14px, 2.2vh, 30px);
+  max-height: calc(100dvh - 290px);
+  overflow: auto;
+  padding-right: 2px;
+
+  @media (max-width: 1180px) {
+    max-height: none;
+    overflow: visible;
+  }
 `
 
 export default CandidateRegistrationScreen

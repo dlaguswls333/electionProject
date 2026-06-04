@@ -26,10 +26,10 @@ function CandidateListItem({ candidate, onDeleteCandidate, onEditCandidate }) {
 const Item = styled.article`
   display: grid;
   grid-template-columns: 48px 1fr auto;
-  gap: 24px;
+  gap: clamp(16px, 2vw, 24px);
   align-items: center;
-  min-height: 112px;
-  padding: 20px 24px;
+  min-height: clamp(88px, 12vh, 112px);
+  padding: clamp(14px, 2vh, 20px) clamp(18px, 2vw, 24px);
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;

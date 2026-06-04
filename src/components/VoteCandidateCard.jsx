@@ -20,8 +20,8 @@ function VoteCandidateCard({ candidate, disabled, isSelected, onSelectCandidate 
 const Card = styled.button`
   position: relative;
   display: block;
-  min-height: 358px;
-  padding: 28px;
+  min-height: clamp(250px, 34vh, 358px);
+  padding: clamp(20px, 2.8vh, 28px);
   color: #0f172a;
   text-align: left;
   background: ${({ $selected }) => ($selected ? '#ecfdf5' : '#ffffff')};
@@ -36,9 +36,9 @@ const Card = styled.button`
 
   > strong {
     display: block;
-    margin-top: 36px;
-    font-size: 22px;
-    line-height: 30px;
+    margin-top: clamp(14px, 2.6vh, 36px);
+    font-size: clamp(19px, 2.2vw, 22px);
+    line-height: 28px;
   }
 
   > em {
@@ -52,7 +52,7 @@ const Card = styled.button`
   }
 
   > p {
-    margin: 34px 0 0;
+    margin: clamp(12px, 2.4vh, 34px) 0 0;
     color: #64748b;
     font-size: 13px;
     line-height: 19px;
@@ -63,7 +63,7 @@ const NumberHeader = styled.span`
   display: flex;
   align-items: center;
   width: 100%;
-  height: 112px;
+  height: clamp(74px, 11vh, 112px);
   padding-left: 24px;
   color: #ffffff;
   font-size: 40px;
@@ -75,7 +75,7 @@ const NumberHeader = styled.span`
 
 const RadioMark = styled.span`
   position: absolute;
-  top: 174px;
+  top: clamp(120px, 18vh, 174px);
   right: 40px;
   width: 26px;
   height: 26px;

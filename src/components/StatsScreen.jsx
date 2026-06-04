@@ -133,8 +133,8 @@ const StatsHeading = styled(SectionHeading)`
 const StatGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 40px;
-  margin: 36px 0 56px;
+  gap: clamp(24px, 3vw, 40px);
+  margin: clamp(12px, 2vh, 36px) 0 clamp(14px, 2.4vh, 44px);
 
   @media (max-width: 1180px) {
     grid-template-columns: repeat(2, 1fr);
@@ -148,9 +148,9 @@ const StatGrid = styled.div`
 
 const StatCard = styled.article`
   position: relative;
-  min-height: 132px;
+  min-height: clamp(92px, 12vh, 132px);
   overflow: hidden;
-  padding: 26px 24px 16px;
+  padding: clamp(18px, 2.5vh, 26px) 24px 14px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -168,9 +168,9 @@ const StatCard = styled.article`
     display: block;
     margin-top: 2px;
     color: #0f172a;
-    font-size: 30px;
+    font-size: clamp(26px, 2.6vw, 30px);
     font-weight: 800;
-    line-height: 38px;
+    line-height: 34px;
   }
 
   small {
@@ -205,7 +205,7 @@ const StatIcon = styled.span`
 const AggregationLayout = styled.div`
   display: grid;
   grid-template-columns: minmax(0, 820px) minmax(280px, 360px);
-  gap: 40px;
+  gap: clamp(24px, 3vw, 40px);
 
   @media (max-width: 1180px) {
     grid-template-columns: 1fr;
@@ -213,11 +213,12 @@ const AggregationLayout = styled.div`
 `
 
 const ClassPanel = styled(Panel)`
-  min-height: 456px;
+  min-height: clamp(260px, 36vh, 456px);
 `
 
 const VotePanel = styled(Panel)`
-  min-height: 456px;
+  min-height: clamp(260px, 36vh, 456px);
+  overflow: hidden;
 
   h2 {
     margin: 0;
@@ -231,7 +232,7 @@ const VotePanel = styled(Panel)`
 const ClassGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 48px 22px;
+  gap: clamp(20px, 3vh, 48px) 22px;
 
   @media (max-width: 760px) {
     grid-template-columns: 1fr;
@@ -240,15 +241,18 @@ const ClassGrid = styled.div`
 
 const VoteStack = styled.div`
   display: grid;
-  gap: 58px;
-  margin-top: 48px;
+  gap: clamp(20px, 3.2vh, 58px);
+  max-height: clamp(170px, 25vh, 350px);
+  margin-top: clamp(18px, 3vh, 48px);
+  overflow: auto;
+  padding-right: 2px;
 `
 
 const StatsActions = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 26px;
+  margin-top: clamp(8px, 1.6vh, 26px);
 
   @media (max-width: 760px) {
     justify-content: stretch;

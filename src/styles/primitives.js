@@ -2,7 +2,7 @@ import styled from 'styled-components'
 
 export const AppShell = styled.main`
   width: min(1440px, 100%);
-  min-height: 960px;
+  min-height: 100dvh;
   margin: 0 auto;
   overflow: hidden;
   background: #f7f8fb;
@@ -10,19 +10,22 @@ export const AppShell = styled.main`
 
   @media (max-width: 1180px) {
     min-height: 100vh;
+    overflow: visible;
   }
 `
 
 export const PageContent = styled.section`
-  padding: 48px 80px 72px;
+  min-height: calc(100dvh - 82px);
+  padding: clamp(16px, 3vh, 48px) 80px clamp(12px, 2vh, 34px);
 
   @media (max-width: 1180px) {
+    min-height: auto;
     padding: 40px 24px 64px;
   }
 `
 
 export const SectionHeading = styled.div`
-  margin-bottom: ${({ $compact }) => ($compact ? '6px' : '28px')};
+  margin-bottom: ${({ $compact }) => ($compact ? '6px' : 'clamp(16px, 2.4vh, 28px)')};
 
   h1,
   h2 {
@@ -51,7 +54,7 @@ export const SectionHeading = styled.div`
 `
 
 export const Panel = styled.section`
-  padding: 28px;
+  padding: clamp(20px, 2.5vh, 28px);
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -70,7 +73,8 @@ export const PanelTitleRow = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: ${({ $vertical }) => ($vertical ? '38px' : '32px')};
+  margin-bottom: ${({ $vertical }) =>
+    $vertical ? 'clamp(22px, 3.3vh, 38px)' : 'clamp(16px, 2.6vh, 32px)'};
 
   h2 {
     margin: 0;
@@ -167,8 +171,8 @@ export const Field = styled.label`
   input,
   textarea {
     width: 100%;
-    min-height: 46px;
-    padding: 12px 14px;
+    min-height: clamp(40px, 5vh, 46px);
+    padding: 10px 14px;
     color: #0f172a;
     font-size: 14px;
     font-weight: 500;
@@ -185,7 +189,7 @@ export const Field = styled.label`
   }
 
   textarea {
-    min-height: 120px;
+    min-height: clamp(82px, 14vh, 120px);
     resize: vertical;
   }
 

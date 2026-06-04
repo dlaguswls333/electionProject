@@ -1,6 +1,7 @@
 export const ROUTES = {
   root: '/',
   login: '/login',
+  dauthCallback: '/auth/dauth/callback',
   candidates: '/candidates',
   stats: '/stats',
   vote: '/vote',
