@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
-import CandidateRegistrationScreen from './components/CandidateRegistrationScreen'
-import DauthCallbackScreen from './components/DauthCallbackScreen'
-import LoginScreen from './components/LoginScreen'
-import StatsScreen from './components/StatsScreen'
+import { useNavigate } from 'react-router-dom'
+import {
+  clearAuthSession,
+  loadAuthSession,
+  login,
+  saveAuthSession,
+  signup,
+} from './api/auth'
 import TopBar from './components/TopBar'
-import VoteScreen from './components/VoteScreen'
 import { CANDIDATE_COLORS, STORAGE_KEY, TOTAL_VOTERS } from './data/electionData'
-import { AdminRoute, ProtectedRoute, PublicOnlyRoute } from './routes/RouteGuards'
+import AppRoutes from './routes/AppRoutes'
 import { ROUTES, getHomePath } from './routes/routePaths'
 import GlobalStyles from './styles/GlobalStyles'
 import { AppShell } from './styles/primitives'
@@ -21,7 +23,7 @@ import {
 function App() {
   const navigate = useNavigate()
   const [electionState, setElectionState] = useState(loadElectionState)
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(loadAuthSession)
   const [selectedCandidateId, setSelectedCandidateId] = useState(
     electionState.submittedCandidateId || electionState.candidates[0]?.id || '',
   )
@@ -59,12 +61,16 @@ function App() {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(electionState))
   }, [electionState])
 
-  function handleLogin(loginUser) {
+  async function handleLogin(credentials) {
+    const loginUser = await login(credentials)
+
+    saveAuthSession(loginUser, { remember: credentials.remember })
     setUser(loginUser)
     navigate(getHomePath(loginUser), { replace: true })
   }
 
   function handleLogout() {
+    clearAuthSession()
     setUser(null)
     navigate(ROUTES.login, { replace: true })
   }
@@ -180,6 +186,40 @@ function App() {
     URL.revokeObjectURL(url)
   }
 
+  const appRoutesProps = {
+    candidateRegistrationProps: {
+      candidates,
+      onAddCandidate: handleAddCandidate,
+      onDeleteCandidate: handleDeleteCandidate,
+      onUpdateCandidate: handleUpdateCandidate,
+    },
+    loginProps: {
+      onLogin: handleLogin,
+    },
+    signupProps: {
+      onSignup: signup,
+    },
+    statsProps: {
+      candidates,
+      classStats,
+      lastRefresh,
+      onDownloadCsv: handleDownloadCsv,
+      onRefresh: () => setLastRefresh(new Date()),
+      summary,
+      totalVotes,
+    },
+    user,
+    voteProps: {
+      candidates,
+      hasVoted,
+      onSelectCandidate: setSelectedCandidateId,
+      onSubmitVote: handleSubmitVote,
+      selectedCandidate,
+      selectedCandidateId: currentSelectedCandidateId,
+      user,
+    },
+  }
+
   return (
     <>
       <GlobalStyles />
@@ -189,70 +229,7 @@ function App() {
           user={user}
         />
 
-        <Routes>
-          <Route
-            element={<Navigate replace to={getHomePath(user)} />}
-            path={ROUTES.root}
-          />
-          <Route
-            element={
-              <PublicOnlyRoute user={user}>
-                <LoginScreen />
-              </PublicOnlyRoute>
-            }
-            path={ROUTES.login}
-          />
-          <Route
-            element={<DauthCallbackScreen onLogin={handleLogin} />}
-            path={ROUTES.dauthCallback}
-          />
-          <Route
-            element={
-              <AdminRoute user={user}>
-                <CandidateRegistrationScreen
-                  candidates={candidates}
-                  onAddCandidate={handleAddCandidate}
-                  onDeleteCandidate={handleDeleteCandidate}
-                  onUpdateCandidate={handleUpdateCandidate}
-                />
-              </AdminRoute>
-            }
-            path={ROUTES.candidates}
-          />
-          <Route
-            element={
-              <AdminRoute user={user}>
-                <StatsScreen
-                  candidates={candidates}
-                  classStats={classStats}
-                  lastRefresh={lastRefresh}
-                  onDownloadCsv={handleDownloadCsv}
-                  onRefresh={() => setLastRefresh(new Date())}
-                  summary={summary}
-                  totalVotes={totalVotes}
-                />
-              </AdminRoute>
-            }
-            path={ROUTES.stats}
-          />
-          <Route
-            element={
-              <ProtectedRoute user={user}>
-                <VoteScreen
-                  candidates={candidates}
-                  hasVoted={hasVoted}
-                  onSelectCandidate={setSelectedCandidateId}
-                  onSubmitVote={handleSubmitVote}
-                  selectedCandidate={selectedCandidate}
-                  selectedCandidateId={currentSelectedCandidateId}
-                  user={user}
-                />
-              </ProtectedRoute>
-            }
-            path={ROUTES.vote}
-          />
-          <Route element={<Navigate replace to={getHomePath(user)} />} path="*" />
-        </Routes>
+        <AppRoutes {...appRoutesProps} />
       </AppShell>
     </>
   )

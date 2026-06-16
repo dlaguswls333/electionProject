@@ -1,29 +1,41 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-import { getDauthConfig, startDauthLogin } from '../auth/dauth'
-import { PrimaryButton, SectionHeading } from '../styles/primitives'
+import { ROUTES } from '../routes/routePaths'
+import { Field, GhostLink, PrimaryButton, SectionHeading } from '../styles/primitives'
 import FeatureItem from './FeatureItem'
 
-function LoginScreen() {
-  const [isStarting, setIsStarting] = useState(false)
+function LoginScreen({ onLogin }) {
+  const navigate = useNavigate()
+  const [account, setAccount] = useState('')
+  const [password, setPassword] = useState('')
+  const [remember, setRemember] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState(
-    'DAuth 계정 인증 후 선거 시스템 권한으로 접속합니다.',
+    '학생 계정으로 로그인합니다.',
   )
-  const dauthConfig = getDauthConfig()
-  const isDauthConfigured = Boolean(dauthConfig.clientId)
 
-  async function handleDauthLogin() {
-    setIsStarting(true)
-    setMessage('DAuth 인가 페이지로 이동합니다.')
+  async function handleSubmit(event) {
+    event.preventDefault()
+
+    if (!account.trim() || !password.trim()) {
+      setMessage('아이디와 비밀번호를 모두 입력해 주세요.')
+      return
+    }
+
+    setIsSubmitting(true)
+    setMessage('로그인 요청을 보내는 중입니다.')
 
     try {
-      await startDauthLogin()
+      await onLogin({
+        password,
+        remember,
+        username: account.trim(),
+      })
     } catch (error) {
-      setIsStarting(false)
+      setIsSubmitting(false)
       setMessage(
-        error instanceof Error
-          ? error.message
-          : 'DAuth 로그인을 시작하지 못했습니다.',
+        error instanceof Error ? error.message : '로그인에 실패했습니다.',
       )
     }
   }
@@ -39,7 +51,7 @@ function LoginScreen() {
 
         <FeatureStrip>
           <FeatureItem
-            description="관리자는 후보 정보와 공약을 등록합니다."
+            description="후보 정보와 공약을 등록합니다."
             title="후보자 등록"
           />
           <FeatureItem
@@ -58,40 +70,60 @@ function LoginScreen() {
         </HeroFooter>
       </HeroPanel>
 
-      <LoginCard>
+      <LoginCard onSubmit={handleSubmit}>
         <SectionHeading $compact>
           <h2>로그인</h2>
-          <p>도담 계정으로 선거 시스템에 접속합니다.</p>
+          <p>학생 계정 정보를 입력해 투표 화면에 접속합니다.</p>
         </SectionHeading>
 
-        <DauthIdentity>
-          <DauthLogo>D</DauthLogo>
-          <div>
-            <strong>DAuth</strong>
-            <span>도담도담 OAuth 인증</span>
-          </div>
-        </DauthIdentity>
+        <Field>
+          <span>아이디</span>
+          <input
+            autoComplete="username"
+            onChange={(event) => setAccount(event.target.value)}
+            value={account}
+          />
+        </Field>
 
-        <AuthInfoList>
-          <li>학생은 DAuth 학생 정보로 투표 화면에 연결됩니다.</li>
-          <li>교사 또는 관리자 권한은 후보 등록과 집계 화면으로 연결됩니다.</li>
-          <li>회원가입과 계정 관리는 도담 계정에서 진행합니다.</li>
-        </AuthInfoList>
+        <Field>
+          <span>비밀번호</span>
+          <input
+            autoComplete="current-password"
+            onChange={(event) => setPassword(event.target.value)}
+            type="password"
+            value={password}
+          />
+        </Field>
 
-        <PrimaryButton
-          $full
-          disabled={!isDauthConfigured || isStarting}
-          onClick={handleDauthLogin}
-          type="button"
-        >
-          {isStarting ? '이동 중' : 'DAuth로 로그인'}
+        <LoginOptions>
+          <CheckboxRow>
+            <input
+              checked={remember}
+              onChange={(event) => setRemember(event.target.checked)}
+              type="checkbox"
+            />
+            <span>로그인 상태 유지</span>
+          </CheckboxRow>
+          <GhostLink
+            onClick={() => setMessage('비밀번호 재설정은 담당자에게 문의하세요.')}
+            type="button"
+          >
+            비밀번호 찾기
+          </GhostLink>
+        </LoginOptions>
+
+        <PrimaryButton $full disabled={isSubmitting} type="submit">
+          {isSubmitting ? '로그인 중' : '로그인'}
         </PrimaryButton>
 
-        <NoticeBox $warning={!isDauthConfigured}>
-          {isDauthConfigured
-            ? message
-            : 'VITE_DAUTH_CLIENT_ID 환경 변수를 설정해야 DAuth 로그인을 시작할 수 있습니다.'}
-        </NoticeBox>
+        <NoticeBox>{message}</NoticeBox>
+
+        <AuthSwitch>
+          <span>아직 계정이 없나요?</span>
+          <GhostLink onClick={() => navigate(ROUTES.signup)} type="button">
+            회원가입
+          </GhostLink>
+        </AuthSwitch>
       </LoginCard>
     </Layout>
   )
@@ -195,7 +227,7 @@ const HeroFooter = styled.div`
   }
 `
 
-const LoginCard = styled.article`
+const LoginCard = styled.form`
   display: grid;
   gap: clamp(16px, 2.4vh, 26px);
   padding: clamp(28px, 4.2vh, 40px);
@@ -215,87 +247,55 @@ const LoginCard = styled.article`
   }
 `
 
-const DauthIdentity = styled.div`
+const LoginOptions = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 18px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  justify-content: space-between;
 
-  strong,
-  span {
-    display: block;
-  }
-
-  strong {
-    color: #0f172a;
-    font-size: 18px;
-    line-height: 25px;
-  }
-
-  span {
-    margin-top: 2px;
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 18px;
+  @media (max-width: 760px) {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
   }
 `
 
-const DauthLogo = styled.span`
-  display: grid;
-  flex: 0 0 auto;
-  width: 48px;
-  height: 48px;
-  place-items: center;
-  color: #ffffff;
-  font-size: 24px;
-  font-weight: 900;
-  background: #0f766e;
-  border-radius: 8px;
-`
-
-const AuthInfoList = styled.ul`
-  display: grid;
+const CheckboxRow = styled.label`
+  display: flex;
+  align-items: center;
   gap: 10px;
-  margin: 0;
-  padding: 0;
   color: #475569;
   font-size: 13px;
-  font-weight: 600;
-  line-height: 19px;
-  list-style: none;
+  font-weight: 500;
 
-  li {
-    position: relative;
-    padding-left: 16px;
-  }
-
-  li::before {
-    position: absolute;
-    top: 8px;
-    left: 0;
-    width: 5px;
-    height: 5px;
-    background: #0f766e;
-    border-radius: 50%;
-    content: '';
+  input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #0f766e;
   }
 `
 
 const NoticeBox = styled.p`
   min-height: 44px;
-  margin: -8px 0 0;
+  margin: -10px 0 0;
   padding: 13px 18px;
-  color: ${({ $warning }) => ($warning ? '#92400e' : '#64748b')};
+  color: #64748b;
   font-size: 12px;
   font-weight: 600;
   line-height: 17px;
-  background: ${({ $warning }) => ($warning ? '#fffbeb' : '#f8fafc')};
-  border: 1px solid ${({ $warning }) => ($warning ? '#fde68a' : '#e2e8f0')};
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
+`
+
+const AuthSwitch = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
 `
 
 export default LoginScreen
