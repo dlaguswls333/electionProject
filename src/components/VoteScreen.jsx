@@ -9,17 +9,23 @@ import {
 import VoteCandidateCard from './VoteCandidateCard'
 
 function VoteScreen({
+  candidateLoadError,
+  canSubmitVote,
   candidates,
   hasVoted,
+  isSubmittingVote,
   onSelectCandidate,
+  onCloseVoteCompletion,
   onSubmitVote,
   selectedCandidate,
   selectedCandidateId,
   user,
+  voteCompletion,
+  voteError,
 }) {
   const voterName =
     user.role === 'student'
-      ? `${user.className} ${user.number ? `${user.number}번 ` : ''}${user.name}`
+      ? `${user.name}`
       : `${user.name} 관리자`
 
   return (
@@ -58,6 +64,9 @@ function VoteScreen({
         ))}
       </VoteCardGrid>
 
+      {candidateLoadError && <StatusMessage>{candidateLoadError}</StatusMessage>}
+      {voteError && <StatusMessage>{voteError}</StatusMessage>}
+
       <SubmitBar>
         <strong>
           선택 후보:{' '}
@@ -66,15 +75,36 @@ function VoteScreen({
             : '없음'}
         </strong>
         <span>
-          {hasVoted ? '투표 제출이 완료되었습니다.' : '제출 전 선택한 후보를 확인하세요.'}
+          {hasVoted
+            ? '투표 제출이 완료되었습니다.'
+            : isSubmittingVote
+              ? '투표를 제출하는 중입니다.'
+              : selectedCandidate && !canSubmitVote
+                ? '서버 후보 목록을 불러온 뒤 제출할 수 있습니다.'
+              : '제출 전 선택한 후보를 확인하세요.'}
         </span>
         <PrimaryButton
-          disabled={!selectedCandidate || hasVoted}
+          disabled={!selectedCandidate || !canSubmitVote || hasVoted || isSubmittingVote}
           onClick={onSubmitVote}
         >
-          투표 제출
+          {isSubmittingVote ? '제출 중' : '투표 제출'}
         </PrimaryButton>
       </SubmitBar>
+
+      {voteCompletion.isOpen && (
+        <ModalBackdrop onClick={onCloseVoteCompletion}>
+          <ModalCard onClick={(event) => event.stopPropagation()}>
+            <h2>투표가 완료되었습니다</h2>
+            <p>
+              {voteCompletion.candidateName
+                ? `${voteCompletion.candidateName} 후보에게 투표했습니다.`
+                : '선택한 후보에게 투표했습니다.'}
+            </p>
+            <small>새로고침해도 다시 투표할 수 없습니다.</small>
+            <PrimaryButton onClick={onCloseVoteCompletion}>확인</PrimaryButton>
+          </ModalCard>
+        </ModalBackdrop>
+      )}
     </PageContent>
   )
 }
@@ -143,6 +173,62 @@ const SubmitBar = styled(LightPanel).attrs({ as: 'footer' })`
 
   @media (max-width: 760px) {
     grid-template-columns: 1fr;
+  }
+`
+
+const StatusMessage = styled.p`
+  margin: 16px 0 -8px;
+  padding: 13px 18px;
+  color: #991b1b;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 19px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+`
+
+const ModalBackdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 60;
+`
+
+const ModalCard = styled.div`
+  display: grid;
+  gap: 14px;
+  width: min(420px, 100%);
+  padding: 28px 26px 24px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+
+  h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  p {
+    margin: 0;
+    color: #334155;
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  small {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  button {
+    justify-self: end;
   }
 `
 

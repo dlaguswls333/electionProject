@@ -49,7 +49,7 @@ function CandidateRegistrationScreen({
     reader.readAsDataURL(file)
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
 
     const requiredValues = [
@@ -83,8 +83,15 @@ function CandidateRegistrationScreen({
       onUpdateCandidate(editingId, form)
       setMessage(`${form.name} 후보 정보를 수정했습니다.`)
     } else {
-      onAddCandidate(form)
-      setMessage(`${form.name} 후보를 등록했습니다.`)
+      try {
+        await onAddCandidate(form)
+        setMessage(`${form.name} 후보를 등록했습니다.`)
+      } catch (error) {
+        setMessage(
+          error instanceof Error ? error.message : '후보 등록에 실패했습니다.',
+        )
+        return
+      }
     }
 
     setEditingId('')
