@@ -83,6 +83,7 @@ function VoteScreen({
                 ? '서버 후보 목록을 불러온 뒤 제출할 수 있습니다.'
               : '제출 전 선택한 후보를 확인하세요.'}
         </span>
+        {/* 후보 미선택, 서버 후보 아님, 이미 투표함, 제출 중인 경우 버튼을 비활성화한다. */}
         <PrimaryButton
           disabled={!selectedCandidate || !canSubmitVote || hasVoted || isSubmittingVote}
           onClick={onSubmitVote}
@@ -91,6 +92,7 @@ function VoteScreen({
         </PrimaryButton>
       </SubmitBar>
 
+      {/* 투표가 정상 처리되면 완료 모달을 보여주고 새로고침 후 재투표 불가를 안내한다. */}
       {voteCompletion.isOpen && (
         <ModalBackdrop onClick={onCloseVoteCompletion}>
           <ModalCard onClick={(event) => event.stopPropagation()}>

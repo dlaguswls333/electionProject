@@ -4,6 +4,7 @@ import { getApiUrl } from '../config/env'
 
 const VOTE_STATUS_KEY_PREFIX = 'election.vote.status'
 
+// HTTP 상태 코드를 함께 보관해서 409 같은 서버 응답을 화면 로직에서 구분한다.
 export class ApiError extends Error {
   constructor(message, status) {
     super(message)
@@ -33,6 +34,7 @@ export async function registerCandidate(form) {
 }
 
 export async function submitVote(candidateId) {
+  // Swagger 명세상 candidateId는 숫자이므로 문자열 ID가 들어오면 숫자로 변환한다.
   const numericCandidateId = Number(candidateId)
 
   if (!Number.isFinite(numericCandidateId)) {
@@ -48,6 +50,7 @@ export async function submitVote(candidateId) {
 }
 
 export function loadVoteStatus(user) {
+  // 로그인 사용자가 없으면 저장된 투표 완료 상태도 없다고 본다.
   if (!user) {
     return { hasVoted: false, submittedCandidateId: '' }
   }
@@ -73,6 +76,7 @@ export function loadVoteStatus(user) {
 }
 
 export function saveVoteStatus(user, status) {
+  // 사용자별 저장 키를 분리해서 다른 계정의 투표 완료 상태와 섞이지 않게 한다.
   if (!user) {
     return
   }
@@ -157,6 +161,7 @@ function getErrorMessage(payload) {
 }
 
 function normalizeCandidate(candidate, index = 0) {
+  // 서버 후보 응답을 화면 컴포넌트가 사용하는 후보 데이터 구조로 변환한다.
   return {
     className: candidate.district || '',
     color: CANDIDATE_COLORS[index % CANDIDATE_COLORS.length],

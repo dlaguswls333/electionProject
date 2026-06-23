@@ -227,10 +227,12 @@ function App() {
   async function handleSubmitVote() {
     const candidateIdToSubmit = currentSelectedCandidateId
 
+    // 선택된 후보가 없거나 이미 투표/제출 중이면 중복 요청을 보내지 않는다.
     if (!candidateIdToSubmit || hasVoted || isSubmittingVote) {
       return
     }
 
+    // 서버에서 받은 후보만 실제 투표 API에 제출할 수 있게 막는다.
     if (!selectedCandidate?.isServerCandidate) {
       setVoteError('서버 후보 목록을 불러온 뒤 투표해 주세요.')
       return
@@ -247,6 +249,7 @@ function App() {
     try {
       await submitVote(candidateIdToSubmit)
     } catch (error) {
+      // 서버가 409를 반환하면 이미 투표한 사용자로 보고 프론트 상태도 완료로 맞춘다.
       if (error instanceof ApiError && error.status === 409) {
         saveVoteStatus(user, {
           hasVoted: true,
@@ -273,6 +276,7 @@ function App() {
       return
     }
 
+    // 투표 성공 상태를 사용자별로 저장해서 새로고침 후에도 재투표를 막는다.
     saveVoteStatus(user, {
       hasVoted: true,
       submittedCandidateId: candidateIdToSubmit,
