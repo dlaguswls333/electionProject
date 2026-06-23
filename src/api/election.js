@@ -4,6 +4,14 @@ import { getApiUrl } from '../config/env'
 
 const VOTE_STATUS_KEY_PREFIX = 'election.vote.status'
 
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
 export async function getCandidates() {
   const payload = await requestJson('/api/candidates')
 
@@ -105,8 +113,9 @@ async function requestJson(path, options = {}) {
   const payload = await readJson(response)
 
   if (!response.ok) {
-    throw new Error(
+    throw new ApiError(
       getErrorMessage(payload) || `요청에 실패했습니다. (${response.status})`,
+      response.status,
     )
   }
 

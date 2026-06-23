@@ -8,6 +8,7 @@ import {
   signup,
 } from './api/auth'
 import {
+  ApiError,
   getCandidates,
   loadVoteStatus,
   registerCandidate,
@@ -238,20 +239,39 @@ function App() {
     setIsSubmittingVote(true)
     setVoteError('')
 
+    const candidateName =
+      selectedCandidate?.name ||
+      candidates.find((candidate) => candidate.id === candidateIdToSubmit)?.name ||
+      ''
+
     try {
       await submitVote(candidateIdToSubmit)
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        saveVoteStatus(user, {
+          hasVoted: true,
+          submittedCandidateId: candidateIdToSubmit,
+        })
+        setElectionState((current) => ({
+          ...current,
+          hasVoted: true,
+          submittedCandidateId: candidateIdToSubmit,
+        }))
+        setVoteCompletion({
+          candidateName,
+          isOpen: true,
+        })
+        setSelectedCandidateId('')
+        setIsSubmittingVote(false)
+        return
+      }
+
       setVoteError(
         error instanceof Error ? error.message : '투표 제출에 실패했습니다.',
       )
       setIsSubmittingVote(false)
       return
     }
-
-    const candidateName =
-      selectedCandidate?.name ||
-      candidates.find((candidate) => candidate.id === candidateIdToSubmit)?.name ||
-      ''
 
     saveVoteStatus(user, {
       hasVoted: true,
